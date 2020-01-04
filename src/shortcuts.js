@@ -120,19 +120,24 @@ export const handleGestureEnd = (gesture, e) => {
 
   // disable when modal is displayed or a drag is in progress
   const state = store.getState()
-  if (state.showModal || state.dragInProgress) return
 
-  const shortcut = globalShortcuts().find(shortcut => [].concat(shortcut.gesture).includes(gesture))
-  if (shortcut) {
-    shortcut.exec(e, { type: 'gesture' })
+  if (gesture && !state.showModal && !state.dragInProgress) {
+    const shortcut = globalShortcuts().find(shortcut => [].concat(shortcut.gesture).includes(gesture))
+    if (shortcut) {
+      shortcut.exec(e, { type: 'gesture' })
+    }
   }
 
   // clear gesture hint
   clearTimeout(handleGestureSegmentTimeout)
   handleGestureSegmentTimeout = null // null the timer to track when it is running for handleGestureSegment
-  store.dispatch({
-    type: 'alert',
-    value: null
+
+  // needs to be delayed until the next tick otherwise there is a re-render which inadvertantly calls the automatic render focus in the Thought component.
+  setTimeout(() => {
+    store.dispatch({
+      type: 'alert',
+      value: null
+    })
   })
 }
 
